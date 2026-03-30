@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Frete</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #e5e7eb;
+      background-image: url('fundo.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: -1;
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: rgba(10, 20, 20, 0.88);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      border: 1px solid rgba(0, 224, 198, 0.18);
+      backdrop-filter: blur(6px);
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #00e0c6;
+      font-size: 28px;
+    }
+
+    .sub {
+      color: #cbd5e1;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #e5e7eb;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(0, 224, 198, 0.18);
+      border-radius: 10px;
+      font-size: 15px;
+      background: rgba(255,255,255,0.96);
+      color: #111827;
+    }
+
+    input::placeholder {
+      color: #6b7280;
+    }
+
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.96;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #00e0c6, #0f766e);
+      color: white;
+    }
+
+    .secondary {
+      background: #d1d5db;
+      color: #111827;
+    }
+
+    .results {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .result-box {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(0, 224, 198, 0.16);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .result-box h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+
+    .value {
+      font-size: 22px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .rules {
+      margin-top: 24px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(0, 224, 198, 0.16);
+      border-radius: 12px;
+      padding: 16px;
+      line-height: 1.6;
+      color: #e5e7eb;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .footer-credit {
+      margin-top: 18px;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 14px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding-top: 14px;
+    }
+
+    .ok { color: #22c55e; }
+    .warn { color: #fbbf24; }
+
+    @media (max-width: 600px) {
+      .wrap {
+        margin: 15px auto;
+        padding: 12px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .value {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Calculadora de Frete</h1>
+      <div class="sub">Você está vendo uma versão beta.</div>
+
+      <div class="grid">
+        <div>
+          <label for="regiao">Região destino</label>
+          <select id="regiao"></select>
+        </div>
+        <div>
+          <label for="operacao">Tipo de operação</label>
+          <select id="operacao">
+            <option value="Complemento">Complemento</option>
+            <option value="Normal">Normal</option>
+            <option value="Dedicado">Dedicado</option>
+          </select>
+        </div>
+        <div>
+          <label for="caminhao">Tipo de caminhão</label>
+          <select id="caminhao">
+            <option value="3/4">3/4</option>
+            <option value="Toco">Toco</option>
+            <option value="Truck">Truck</option>
+            <option value="Carreta">Carreta</option>
+            <option value="Bitrem">Bitrem</option>
+            <option value="Rodotrem">Rodotrem</option>
+          </select>
+        </div>
+        <div>
+          <label for="km">KM da viagem</label>
+          <input id="km" type="number" min="0" placeholder="Ex: 1535" />
+        </div>
+        <div>
+          <label for="peso">Peso da carga (kg)</label>
+          <input id="peso" type="number" min="0" placeholder="Ex: 900" />
+        </div>
+        <div>
+          <label for="chapas">Quantidade de chapas</label>
+          <input id="chapas" type="number" min="0" placeholder="Ex: 4" />
+        </div>
+        <div>
+          <label for="temChapa">Tem chapa?</label>
+          <select id="temChapa">
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" onclick="calcularFrete()">Calcular frete</button>
+        <button class="secondary" onclick="limparCampos()">Limpar</button>
+      </div>
+
+      <div class="results">
+        <div class="result-box"><h3>Classificação do peso</h3><div class="value" id="rPeso">-</div></div>
+        <div class="result-box"><h3>Valor base por KM</h3><div class="value" id="rBaseKm">R$ 0,00</div></div>
+        <div class="result-box"><h3>Multiplicador caminhão</h3><div class="value" id="rMultCam">0,00x</div></div>
+        <div class="result-box"><h3>Multiplicador peso</h3><div class="value" id="rMultPeso">0,00x</div></div>
+        <div class="result-box"><h3>Valor KM final</h3><div class="value" id="rKmFinal">R$ 0,00</div></div>
+        <div class="result-box"><h3>Frete pela distância</h3><div class="value" id="rFreteKm">R$ 0,00</div></div>
+        <div class="result-box"><h3>Valor unitário do chapa</h3><div class="value" id="rChapaUnit">R$ 0,00</div></div>
+        <div class="result-box"><h3>Valor total de chapas</h3><div class="value" id="rChapaTotal">R$ 0,00</div></div>
+        <div class="result-box"><h3>Frete total</h3><div class="value" id="rTotal">R$ 0,00</div></div>
+        <div class="result-box"><h3>Status ANTT</h3><div class="value" id="rAntt">Conferir manualmente</div></div>
+      </div>
+
+      <div class="rules">
+        <strong>Regras aplicadas:</strong><br>
+        • Complemento: sempre usa o mínimo da região.<br>
+        • Normal: sempre usa o mínimo da região.<br>
+        • Dedicado: até 800 km usa mínimo; a partir de 801 km usa máximo.<br>
+        • Peso: 0–250 kg = leve | 251–450 kg = média | 451+ kg = pesado.<br>
+        • Multiplicador do peso: leve = 0,90 | média = 1,00 | pesado = 1,10.<br>
+        • Chapa: carga pesada ou 2+ chapas = valor máximo; demais = valor mínimo.
+      </div>
+
+      <div class="footer-note">
+        Goiânia 2026.
+      </div>
+
+      <div class="footer-credit">
+        Criado por Levi Santana &amp; Roberta Silva
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const regioes = {
+      "Grande São Paulo": { complMin: 2.15, normalMin: 2.45, dedicMin: 3.05, dedicMax: 3.85, chapaMin: 180, chapaMax: 320 },
+      "Interior SP": { complMin: 2.20, normalMin: 2.50, dedicMin: 3.10, dedicMax: 3.95, chapaMin: 180, chapaMax: 320 },
+      "Triângulo Mineiro": { complMin: 2.20, normalMin: 2.50, dedicMin: 3.15, dedicMax: 3.90, chapaMin: 180, chapaMax: 320 },
+      "Sul de Minas": { complMin: 2.25, normalMin: 2.55, dedicMin: 3.20, dedicMax: 4.00, chapaMin: 180, chapaMax: 320 },
+      "Centro-Oeste GO": { complMin: 2.15, normalMin: 2.45, dedicMin: 3.05, dedicMax: 3.85, chapaMin: 180, chapaMax: 320 },
+      "Mato Grosso": { complMin: 2.35, normalMin: 2.70, dedicMin: 3.35, dedicMax: 4.25, chapaMin: 200, chapaMax: 350 },
+      "Mato Grosso do Sul": { complMin: 2.30, normalMin: 2.60, dedicMin: 3.25, dedicMax: 4.10, chapaMin: 190, chapaMax: 340 },
+      "Norte do Paraná": { complMin: 2.25, normalMin: 2.55, dedicMin: 3.20, dedicMax: 4.00, chapaMin: 190, chapaMax: 330 },
+      "Interior PR": { complMin: 2.30, normalMin: 2.60, dedicMin: 3.25, dedicMax: 4.10, chapaMin: 190, chapaMax: 330 },
+      "Santa Catarina": { complMin: 2.35, normalMin: 2.65, dedicMin: 3.35, dedicMax: 4.20, chapaMin: 200, chapaMax: 350 },
+      "Rio Grande do Sul": { complMin: 2.40, normalMin: 2.75, dedicMin: 3.45, dedicMax: 4.35, chapaMin: 200, chapaMax: 360 },
+      "Bahia Leste": { complMin: 2.45, normalMin: 2.85, dedicMin: 3.55, dedicMax: 4.55, chapaMin: 220, chapaMax: 380 },
+      "Bahia Oeste": { complMin: 2.50, normalMin: 2.90, dedicMin: 3.60, dedicMax: 4.60, chapaMin: 220, chapaMax: 380 },
+      "Pernambuco": { complMin: 2.55, normalMin: 2.95, dedicMin: 3.65, dedicMax: 4.75, chapaMin: 230, chapaMax: 390 },
+      "Ceará": { complMin: 2.60, normalMin: 3.00, dedicMin: 3.75, dedicMax: 4.85, chapaMin: 240, chapaMax: 400 },
+      "Pará": { complMin: 2.70, normalMin: 3.20, dedicMin: 3.95, dedicMax: 5.10, chapaMin: 250, chapaMax: 420 },
+      "Amazonas": { complMin: 2.90, normalMin: 3.40, dedicMin: 4.15, dedicMax: 5.45, chapaMin: 260, chapaMax: 450 },
+      "Tocantins": { complMin: 2.55, normalMin: 3.00, dedicMin: 3.75, dedicMax: 4.85, chapaMin: 230, chapaMax: 390 },
+      "Maranhão": { complMin: 2.65, normalMin: 3.05, dedicMin: 3.85, dedicMax: 4.95, chapaMin: 240, chapaMax: 400 },
+      "Piauí": { complMin: 2.60, normalMin: 3.00, dedicMin: 3.80, dedicMax: 4.90, chapaMin: 240, chapaMax: 400 }
+    };
+
+    const caminhoes = {
+      "3/4": 0.85,
+      "Toco": 0.95,
+      "Truck": 1.00,
+      "Carreta": 1.10,
+      "Bitrem": 1.25,
+      "Rodotrem": 1.35
+    };
+
+    function moeda(v) {
+      return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function preencherRegioes() {
+      const select = document.getElementById('regiao');
+      Object.keys(regioes).forEach(nome => {
+        const opt = document.createElement('option');
+        opt.value = nome;
+        opt.textContent = nome;
+        select.appendChild(opt);
+      });
+      select.value = 'Bahia Leste';
+      document.getElementById('caminhao').value = 'Toco';
+    }
+
+    function classificarPeso(peso) {
+      if (peso <= 250) return { nome: 'Leve', mult: 0.90 };
+      if (peso <= 450) return { nome: 'Média', mult: 1.00 };
+      return { nome: 'Pesado', mult: 1.10 };
+    }
+
+    function calcularFrete() {
+      const regiao = document.getElementById('regiao').value;
+      const operacao = document.getElementById('operacao').value;
+      const caminhao = document.getElementById('caminhao').value;
+      const km = Number(document.getElementById('km').value || 0);
+      const peso = Number(document.getElementById('peso').value || 0);
+      const chapas = Number(document.getElementById('chapas').value || 0);
+      const temChapa = document.getElementById('temChapa').value;
+
+      if (!regiao || km <= 0) {
+        alert('Preencha pelo menos a região e o KM da viagem.');
+        return;
+      }
+
+      const dados = regioes[regiao];
+      const multCam = caminhoes[caminhao] || 1;
+      const pesoInfo = classificarPeso(peso);
+
+      let valorBaseKm = 0;
+      if (operacao === 'Complemento') valorBaseKm = dados.complMin;
+      else if (operacao === 'Normal') valorBaseKm = dados.normalMin;
+      else valorBaseKm = km <= 800 ? dados.dedicMin : dados.dedicMax;
+
+      const valorKmFinal = valorBaseKm * multCam * pesoInfo.mult;
+      const freteKm = valorKmFinal * km;
+
+      let chapaUnit = 0;
+      if (temChapa === 'Sim') {
+        chapaUnit = (pesoInfo.nome === 'Pesado' || chapas >= 2) ? dados.chapaMax : dados.chapaMin;
+      }
+      const chapaTotal = chapaUnit * chapas;
+      const freteTotal = freteKm + chapaTotal;
+
+      document.getElementById('rPeso').textContent = pesoInfo.nome;
+      document.getElementById('rBaseKm').textContent = moeda(valorBaseKm);
+      document.getElementById('rMultCam').textContent = multCam.toFixed(2).replace('.', ',') + 'x';
+      document.getElementById('rMultPeso').textContent = pesoInfo.mult.toFixed(2).replace('.', ',') + 'x';
+      document.getElementById('rKmFinal').textContent = moeda(valorKmFinal);
+      document.getElementById('rFreteKm').textContent = moeda(freteKm);
+      document.getElementById('rChapaUnit').textContent = moeda(chapaUnit);
+      document.getElementById('rChapaTotal').textContent = moeda(chapaTotal);
+      document.getElementById('rTotal').textContent = moeda(freteTotal);
+      document.getElementById('rAntt').innerHTML = '<span class="warn">Conferir no site oficial</span>';
+    }
+
+    function limparCampos() {
+      document.getElementById('km').value = '';
+      document.getElementById('peso').value = '';
+      document.getElementById('chapas').value = '';
+      document.getElementById('temChapa').value = 'Sim';
+      document.getElementById('operacao').value = 'Complemento';
+      document.getElementById('caminhao').value = 'Toco';
+      document.getElementById('rPeso').textContent = '-';
+      document.getElementById('rBaseKm').textContent = 'R$ 0,00';
+      document.getElementById('rMultCam').textContent = '0,00x';
+      document.getElementById('rMultPeso').textContent = '0,00x';
+      document.getElementById('rKmFinal').textContent = 'R$ 0,00';
+      document.getElementById('rFreteKm').textContent = 'R$ 0,00';
+      document.getElementById('rChapaUnit').textContent = 'R$ 0,00';
+      document.getElementById('rChapaTotal').textContent = 'R$ 0,00';
+      document.getElementById('rTotal').textContent = 'R$ 0,00';
+      document.getElementById('rAntt').textContent = 'Conferir manualmente';
+    }
+
+    preencherRegioes();
+  </script>
+</body>
+</html>
