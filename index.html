@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculadora de Frete</title>
+  <title>Calculadora de Frete - HAWK</title>
   <style>
     * { box-sizing: border-box; }
 
@@ -28,24 +28,24 @@
     }
 
     .wrap {
-      max-width: 1000px;
-      margin: 30px auto;
+      max-width: 1120px;
+      margin: 28px auto;
       padding: 20px;
     }
 
     .card {
       background: rgba(10, 20, 20, 0.88);
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.38);
       border: 1px solid rgba(0, 224, 198, 0.18);
       backdrop-filter: blur(6px);
     }
 
     h1 {
-      margin-top: 0;
+      margin: 0 0 6px;
       color: #00e0c6;
-      font-size: 28px;
+      font-size: 30px;
     }
 
     .sub {
@@ -74,6 +74,7 @@
       font-size: 15px;
       background: rgba(255,255,255,0.96);
       color: #111827;
+      outline: none;
     }
 
     input::placeholder {
@@ -145,7 +146,7 @@
       border: 1px solid rgba(0, 224, 198, 0.16);
       border-radius: 12px;
       padding: 16px;
-      line-height: 1.6;
+      line-height: 1.7;
       color: #e5e7eb;
     }
 
@@ -164,8 +165,9 @@
       padding-top: 14px;
     }
 
-    .ok { color: #22c55e; }
-    .warn { color: #fbbf24; }
+    .warn {
+      color: #fbbf24;
+    }
 
     @media (max-width: 600px) {
       .wrap {
@@ -191,47 +193,48 @@
   <div class="wrap">
     <div class="card">
       <h1>Calculadora de Frete</h1>
-      <div class="sub">Você está vendo uma versão beta.</div>
+      <div class="sub">Versão 1.1.</div>
 
       <div class="grid">
         <div>
           <label for="regiao">Região destino</label>
           <select id="regiao"></select>
         </div>
+
         <div>
           <label for="operacao">Tipo de operação</label>
           <select id="operacao">
+            <option value="" selected disabled>Opções</option>
             <option value="Complemento">Complemento</option>
             <option value="Normal">Normal</option>
             <option value="Dedicado">Dedicado</option>
           </select>
         </div>
+
         <div>
           <label for="caminhao">Tipo de caminhão</label>
-          <select id="caminhao">
-            <option value="3/4">3/4</option>
-            <option value="Toco">Toco</option>
-            <option value="Truck">Truck</option>
-            <option value="Carreta">Carreta</option>
-            <option value="Bitrem">Bitrem</option>
-            <option value="Rodotrem">Rodotrem</option>
-          </select>
+          <select id="caminhao"></select>
         </div>
+
         <div>
           <label for="km">KM da viagem</label>
           <input id="km" type="number" min="0" placeholder="Ex: 1535" />
         </div>
+
         <div>
           <label for="peso">Peso da carga (kg)</label>
           <input id="peso" type="number" min="0" placeholder="Ex: 900" />
         </div>
+
         <div>
           <label for="chapas">Quantidade de chapas</label>
           <input id="chapas" type="number" min="0" placeholder="Ex: 4" />
         </div>
+
         <div>
           <label for="temChapa">Tem chapa?</label>
           <select id="temChapa">
+            <option value="" selected disabled>Opções</option>
             <option value="Sim">Sim</option>
             <option value="Não">Não</option>
           </select>
@@ -258,11 +261,11 @@
 
       <div class="rules">
         <strong>Regras aplicadas:</strong><br>
-        • Complemento: sempre usa o mínimo da região.<br>
-        • Normal: sempre usa o mínimo da região.<br>
+        • Complemento: usa o valor mínimo da região.<br>
+        • Normal: usa o valor mínimo da região.<br>
         • Dedicado: até 800 km usa mínimo; a partir de 801 km usa máximo.<br>
-        • Peso: 0–250 kg = leve | 251–450 kg = média | 451+ kg = pesado.<br>
-        • Multiplicador do peso: leve = 0,90 | média = 1,00 | pesado = 1,10.<br>
+        • Peso: 0–250 kg = leve | 251–450 kg = média | acima de 450 kg = pesado.<br>
+        • Multiplicador do peso: leve = 0.90 | média = 1.00 | pesado = 1.10.<br>
         • Chapa: carga pesada ou 2+ chapas = valor máximo; demais = valor mínimo.
       </div>
 
@@ -277,58 +280,116 @@
   </div>
 
   <script>
+    const parametros = {
+      pesoLeveAte: 250,
+      pesoMedioAte: 450,
+      multPesoLeve: 0.9,
+      multPesoMedio: 1,
+      multPesoPesado: 1.1,
+      dedicadoMinAteKm: 800,
+      dedicadoMaxAPartirKm: 801
+    };
+
     const regioes = {
-      "Grande São Paulo": { complMin: 2.15, normalMin: 2.45, dedicMin: 3.05, dedicMax: 3.85, chapaMin: 180, chapaMax: 320 },
-      "Interior SP": { complMin: 2.20, normalMin: 2.50, dedicMin: 3.10, dedicMax: 3.95, chapaMin: 180, chapaMax: 320 },
-      "Triângulo Mineiro": { complMin: 2.20, normalMin: 2.50, dedicMin: 3.15, dedicMax: 3.90, chapaMin: 180, chapaMax: 320 },
-      "Sul de Minas": { complMin: 2.25, normalMin: 2.55, dedicMin: 3.20, dedicMax: 4.00, chapaMin: 180, chapaMax: 320 },
-      "Centro-Oeste GO": { complMin: 2.15, normalMin: 2.45, dedicMin: 3.05, dedicMax: 3.85, chapaMin: 180, chapaMax: 320 },
-      "Mato Grosso": { complMin: 2.35, normalMin: 2.70, dedicMin: 3.35, dedicMax: 4.25, chapaMin: 200, chapaMax: 350 },
-      "Mato Grosso do Sul": { complMin: 2.30, normalMin: 2.60, dedicMin: 3.25, dedicMax: 4.10, chapaMin: 190, chapaMax: 340 },
-      "Norte do Paraná": { complMin: 2.25, normalMin: 2.55, dedicMin: 3.20, dedicMax: 4.00, chapaMin: 190, chapaMax: 330 },
-      "Interior PR": { complMin: 2.30, normalMin: 2.60, dedicMin: 3.25, dedicMax: 4.10, chapaMin: 190, chapaMax: 330 },
-      "Santa Catarina": { complMin: 2.35, normalMin: 2.65, dedicMin: 3.35, dedicMax: 4.20, chapaMin: 200, chapaMax: 350 },
-      "Rio Grande do Sul": { complMin: 2.40, normalMin: 2.75, dedicMin: 3.45, dedicMax: 4.35, chapaMin: 200, chapaMax: 360 },
-      "Bahia Leste": { complMin: 2.45, normalMin: 2.85, dedicMin: 3.55, dedicMax: 4.55, chapaMin: 220, chapaMax: 380 },
-      "Bahia Oeste": { complMin: 2.50, normalMin: 2.90, dedicMin: 3.60, dedicMax: 4.60, chapaMin: 220, chapaMax: 380 },
-      "Pernambuco": { complMin: 2.55, normalMin: 2.95, dedicMin: 3.65, dedicMax: 4.75, chapaMin: 230, chapaMax: 390 },
-      "Ceará": { complMin: 2.60, normalMin: 3.00, dedicMin: 3.75, dedicMax: 4.85, chapaMin: 240, chapaMax: 400 },
-      "Pará": { complMin: 2.70, normalMin: 3.20, dedicMin: 3.95, dedicMax: 5.10, chapaMin: 250, chapaMax: 420 },
-      "Amazonas": { complMin: 2.90, normalMin: 3.40, dedicMin: 4.15, dedicMax: 5.45, chapaMin: 260, chapaMax: 450 },
-      "Tocantins": { complMin: 2.55, normalMin: 3.00, dedicMin: 3.75, dedicMax: 4.85, chapaMin: 230, chapaMax: 390 },
-      "Maranhão": { complMin: 2.65, normalMin: 3.05, dedicMin: 3.85, dedicMax: 4.95, chapaMin: 240, chapaMax: 400 },
-      "Piauí": { complMin: 2.60, normalMin: 3.00, dedicMin: 3.80, dedicMax: 4.90, chapaMin: 240, chapaMax: 400 }
+      "Grande São Paulo": { complMin: 2.15, complMax: 2.55, normalMin: 2.45, normalMax: 2.95, dedicMin: 3.05, dedicMax: 3.85, chapaMin: 180, chapaMax: 320 },
+      "Interior SP": { complMin: 2.2, complMax: 2.65, normalMin: 2.5, normalMax: 3.05, dedicMin: 3.1, dedicMax: 3.95, chapaMin: 180, chapaMax: 320 },
+      "Litoral de SP": { complMin: 2.2, complMax: 2.65, normalMin: 2.5, normalMax: 3.05, dedicMin: 3.1, dedicMax: 3.95, chapaMin: 180, chapaMax: 320 },
+      "Triângulo Mineiro": { complMin: 2.2, complMax: 2.6, normalMin: 2.5, normalMax: 3, dedicMin: 3.15, dedicMax: 3.9, chapaMin: 180, chapaMax: 320 },
+      "Sul de Minas": { complMin: 2.25, complMax: 2.65, normalMin: 2.55, normalMax: 3.05, dedicMin: 3.2, dedicMax: 4, chapaMin: 180, chapaMax: 320 },
+      "Goiás centro": { complMin: 2.15, complMax: 2.55, normalMin: 2.45, normalMax: 2.95, dedicMin: 3.05, dedicMax: 3.85, chapaMin: 180, chapaMax: 320 },
+      "Goias interior": { complMin: 2.3, complMax: 2.8, normalMin: 2.6, normalMax: 3.15, dedicMin: 3.25, dedicMax: 4.1, chapaMin: 190, chapaMax: 340 },
+      "Mato Grosso": { complMin: 2.35, complMax: 2.85, normalMin: 2.7, normalMax: 3.3, dedicMin: 3.35, dedicMax: 4.25, chapaMin: 200, chapaMax: 350 },
+      "Mato Grosso do Sul": { complMin: 2.3, complMax: 2.8, normalMin: 2.6, normalMax: 3.15, dedicMin: 3.25, dedicMax: 4.1, chapaMin: 190, chapaMax: 340 },
+      "Norte do Paraná": { complMin: 2.25, complMax: 2.75, normalMin: 2.55, normalMax: 3.1, dedicMin: 3.2, dedicMax: 4, chapaMin: 190, chapaMax: 330 },
+      "Interior PR": { complMin: 2.3, complMax: 2.8, normalMin: 2.6, normalMax: 3.2, dedicMin: 3.25, dedicMax: 4.1, chapaMin: 190, chapaMax: 330 },
+      "Santa Catarina": { complMin: 2.35, complMax: 2.85, normalMin: 2.65, normalMax: 3.25, dedicMin: 3.35, dedicMax: 4.2, chapaMin: 200, chapaMax: 350 },
+      "Rio Grande do Sul": { complMin: 2.4, complMax: 2.95, normalMin: 2.75, normalMax: 3.35, dedicMin: 3.45, dedicMax: 4.35, chapaMin: 200, chapaMax: 360 },
+      "Bahia Leste": { complMin: 2.45, complMax: 3, normalMin: 2.85, normalMax: 3.45, dedicMin: 3.55, dedicMax: 4.55, chapaMin: 220, chapaMax: 380 },
+      "Bahia Oeste": { complMin: 2.5, complMax: 3.05, normalMin: 2.9, normalMax: 3.5, dedicMin: 3.6, dedicMax: 4.6, chapaMin: 220, chapaMax: 380 },
+      "Pernambuco": { complMin: 2.55, complMax: 3.1, normalMin: 2.95, normalMax: 3.6, dedicMin: 3.65, dedicMax: 4.75, chapaMin: 230, chapaMax: 390 },
+      "Ceará": { complMin: 2.6, complMax: 3.15, normalMin: 3, normalMax: 3.7, dedicMin: 3.75, dedicMax: 4.85, chapaMin: 240, chapaMax: 400 },
+      "Pará": { complMin: 2.7, complMax: 3.35, normalMin: 3.2, normalMax: 3.95, dedicMin: 3.95, dedicMax: 5.1, chapaMin: 250, chapaMax: 420 },
+      "Amazonas": { complMin: 2.9, complMax: 3.55, normalMin: 3.4, normalMax: 4.2, dedicMin: 4.15, dedicMax: 5.45, chapaMin: 260, chapaMax: 450 },
+      "Tocantins": { complMin: 2.55, complMax: 3.15, normalMin: 3, normalMax: 3.7, dedicMin: 3.75, dedicMax: 4.85, chapaMin: 230, chapaMax: 390 },
+      "Maranhão": { complMin: 2.65, complMax: 3.2, normalMin: 3.05, normalMax: 3.8, dedicMin: 3.85, dedicMax: 4.95, chapaMin: 240, chapaMax: 400 },
+      "Piauí": { complMin: 2.6, complMax: 3.15, normalMin: 3, normalMax: 3.75, dedicMin: 3.8, dedicMax: 4.9, chapaMin: 240, chapaMax: 400 },
+      "Rio de Janeiro Capital": { complMin: 2.25, complMax: 2.75, normalMin: 2.55, normalMax: 3.15, dedicMin: 3.2, dedicMax: 4.1, chapaMin: 200, chapaMax: 340 },
+      "Rio de Janeiro Interior": { complMin: 2.3, complMax: 2.8, normalMin: 2.6, normalMax: 3.2, dedicMin: 3.25, dedicMax: 4.2, chapaMin: 200, chapaMax: 350 },
+      "Espírito Santo": { complMin: 2.25, complMax: 2.75, normalMin: 2.55, normalMax: 3.15, dedicMin: 3.2, dedicMax: 4.05, chapaMin: 190, chapaMax: 340 },
+      "Distrito Federal": { complMin: 2.2, complMax: 2.7, normalMin: 2.5, normalMax: 3.05, dedicMin: 3.1, dedicMax: 4, chapaMin: 190, chapaMax: 330 },
+      "Entorno DF / Goiás": { complMin: 2.15, complMax: 2.65, normalMin: 2.45, normalMax: 3, dedicMin: 3.05, dedicMax: 3.9, chapaMin: 180, chapaMax: 320 },
+      "Acre": { complMin: 2.9, complMax: 3.55, normalMin: 3.4, normalMax: 4.2, dedicMin: 4.15, dedicMax: 5.45, chapaMin: 260, chapaMax: 450 },
+      "Rondônia": { complMin: 2.9, complMax: 3.55, normalMin: 3.4, normalMax: 4.2, dedicMin: 4.15, dedicMax: 5.45, chapaMin: 260, chapaMax: 450 },
+      "Roraima": { complMin: 2.9, complMax: 3.55, normalMin: 3.4, normalMax: 4.2, dedicMin: 4.15, dedicMax: 5.45, chapaMin: 260, chapaMax: 450 },
+      "Amapá": { complMin: 2.9, complMax: 3.55, normalMin: 3.4, normalMax: 4.2, dedicMin: 4.15, dedicMax: 5.45, chapaMin: 260, chapaMax: 450 },
+      "Rio Grande do Norte": { complMin: 2.6, complMax: 3.15, normalMin: 3, normalMax: 3.75, dedicMin: 3.8, dedicMax: 4.9, chapaMin: 240, chapaMax: 400 },
+      "Alagoas": { complMin: 2.6, complMax: 3.15, normalMin: 3, normalMax: 3.75, dedicMin: 3.8, dedicMax: 4.9, chapaMin: 240, chapaMax: 400 },
+      "Sergipe": { complMin: 2.6, complMax: 3.15, normalMin: 3, normalMax: 3.75, dedicMin: 3.8, dedicMax: 4.9, chapaMin: 240, chapaMax: 400 },
+      "Paraíba": { complMin: 2.6, complMax: 3.15, normalMin: 3, normalMax: 3.75, dedicMin: 3.8, dedicMax: 4.9, chapaMin: 240, chapaMax: 400 }
     };
 
     const caminhoes = {
       "3/4": 0.85,
       "Toco": 0.95,
-      "Truck": 1.00,
-      "Carreta": 1.10,
+      "Truck": 1,
+      "Carreta": 1.1,
       "Bitrem": 1.25,
       "Rodotrem": 1.35
     };
 
     function moeda(v) {
-      return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      return Number(v || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      });
     }
 
     function preencherRegioes() {
       const select = document.getElementById('regiao');
+      select.innerHTML = '';
+
+      const opcaoPadrao = document.createElement('option');
+      opcaoPadrao.value = '';
+      opcaoPadrao.textContent = 'Opções';
+      opcaoPadrao.selected = true;
+      opcaoPadrao.disabled = true;
+      select.appendChild(opcaoPadrao);
+
       Object.keys(regioes).forEach(nome => {
         const opt = document.createElement('option');
         opt.value = nome;
         opt.textContent = nome;
         select.appendChild(opt);
       });
-      select.value = 'Bahia Leste';
-      document.getElementById('caminhao').value = 'Toco';
+    }
+
+    function preencherCaminhoes() {
+      const select = document.getElementById('caminhao');
+      select.innerHTML = '';
+
+      const opcaoPadrao = document.createElement('option');
+      opcaoPadrao.value = '';
+      opcaoPadrao.textContent = 'Opções';
+      opcaoPadrao.selected = true;
+      opcaoPadrao.disabled = true;
+      select.appendChild(opcaoPadrao);
+
+      Object.keys(caminhoes).forEach(nome => {
+        const opt = document.createElement('option');
+        opt.value = nome;
+        opt.textContent = nome;
+        select.appendChild(opt);
+      });
     }
 
     function classificarPeso(peso) {
-      if (peso <= 250) return { nome: 'Leve', mult: 0.90 };
-      if (peso <= 450) return { nome: 'Média', mult: 1.00 };
-      return { nome: 'Pesado', mult: 1.10 };
+      if (peso <= parametros.pesoLeveAte) {
+        return { nome: 'Leve', mult: parametros.multPesoLeve };
+      }
+      if (peso <= parametros.pesoMedioAte) {
+        return { nome: 'Média', mult: parametros.multPesoMedio };
+      }
+      return { nome: 'Pesado', mult: parametros.multPesoPesado };
     }
 
     function calcularFrete() {
@@ -340,19 +401,24 @@
       const chapas = Number(document.getElementById('chapas').value || 0);
       const temChapa = document.getElementById('temChapa').value;
 
-      if (!regiao || km <= 0) {
-        alert('Preencha pelo menos a região e o KM da viagem.');
+      if (!regiao || !operacao || !caminhao || !temChapa || km <= 0) {
+        alert('Preencha região, operação, caminhão, chapa e KM da viagem.');
         return;
       }
 
       const dados = regioes[regiao];
-      const multCam = caminhoes[caminhao] || 1;
+      const multCam = caminhoes[caminhao];
       const pesoInfo = classificarPeso(peso);
 
       let valorBaseKm = 0;
-      if (operacao === 'Complemento') valorBaseKm = dados.complMin;
-      else if (operacao === 'Normal') valorBaseKm = dados.normalMin;
-      else valorBaseKm = km <= 800 ? dados.dedicMin : dados.dedicMax;
+
+      if (operacao === 'Complemento') {
+        valorBaseKm = dados.complMin;
+      } else if (operacao === 'Normal') {
+        valorBaseKm = dados.normalMin;
+      } else if (operacao === 'Dedicado') {
+        valorBaseKm = km <= parametros.dedicadoMinAteKm ? dados.dedicMin : dados.dedicMax;
+      }
 
       const valorKmFinal = valorBaseKm * multCam * pesoInfo.mult;
       const freteKm = valorKmFinal * km;
@@ -361,6 +427,7 @@
       if (temChapa === 'Sim') {
         chapaUnit = (pesoInfo.nome === 'Pesado' || chapas >= 2) ? dados.chapaMax : dados.chapaMin;
       }
+
       const chapaTotal = chapaUnit * chapas;
       const freteTotal = freteKm + chapaTotal;
 
@@ -377,12 +444,14 @@
     }
 
     function limparCampos() {
+      document.getElementById('regiao').value = '';
+      document.getElementById('operacao').value = '';
+      document.getElementById('caminhao').value = '';
+      document.getElementById('temChapa').value = '';
       document.getElementById('km').value = '';
       document.getElementById('peso').value = '';
       document.getElementById('chapas').value = '';
-      document.getElementById('temChapa').value = 'Sim';
-      document.getElementById('operacao').value = 'Complemento';
-      document.getElementById('caminhao').value = 'Toco';
+
       document.getElementById('rPeso').textContent = '-';
       document.getElementById('rBaseKm').textContent = 'R$ 0,00';
       document.getElementById('rMultCam').textContent = '0,00x';
@@ -396,6 +465,7 @@
     }
 
     preencherRegioes();
+    preencherCaminhoes();
   </script>
 </body>
 </html>
